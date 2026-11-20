@@ -58,7 +58,7 @@
 
     <div class="container">
         
-        <!-- Кружочки популярных игр -->
+        <!-- Иконки популярных игр -->
         <div class="popular-games">
             <div class="popular-item">
                 <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/291480/header.jpg" class="popular-img" alt="Warface">
@@ -82,7 +82,7 @@
             </div>
         </div>
 
-        <!-- Панель администратора -->
+        <!-- Панель админа -->
         {% if logged_in %}
             <div class="admin-panel">
                 <h3>Добавить новый товар</h3>
@@ -102,7 +102,7 @@
             {% for game in games %}
                 <div class="game-card">
                     
-                    <!-- Картинки из Steam (100% рабочие) -->
+                    <!-- Лого игр -->
                     {% if game[1] == 'Warface' %}
                         <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/291480/header.jpg" class="game-img-real">
                     {% elif game[1] == 'Dark Souls 3' %}

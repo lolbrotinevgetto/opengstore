@@ -2,25 +2,24 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 
 app = Flask(__name__)
-app.secret_key = 'super_secret_key'
+app.secret_key = 'loo1brotiporeperya'
 
 def init_db():
-    conn = sqlite3.connect('games.db')
-    cursor = conn.cursor()
-    # Удаляем старую таблицу, чтобы загрузились новые игры
-    cursor.execute('DROP TABLE IF EXISTS games') 
+    db = sqlite3.connect('games.db')
+    cur = db.cursor()
+    print("--- База данных подключена! ---")
     
-    cursor.execute('''CREATE TABLE IF NOT EXISTS games
+    cur.execute('''CREATE TABLE IF NOT EXISTS games
                       (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, platform TEXT NOT NULL, price REAL NOT NULL)''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS users
+    cur.execute('''CREATE TABLE IF NOT EXISTS users
                       (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, password TEXT NOT NULL)''')
     
-    cursor.execute('SELECT COUNT(*) FROM users')
-    if cursor.fetchone()[0] == 0:
-        cursor.execute('INSERT INTO users (username, password) VALUES ("admin", "123")')
+    cur.execute('SELECT COUNT(*) FROM users')
+    if cur.fetchone()[0] == 0:
+        cur.execute('INSERT INTO users (username, password) VALUES ("admin", "123")')
     
-    cursor.execute('SELECT COUNT(*) FROM games')
-    if cursor.fetchone()[0] == 0:
+    cur.execute('SELECT COUNT(*) FROM games')
+    if cur.fetchone()[0] == 0:
         games_data = [
             ('Warface', 'PC', 1000.0), 
             ('Dark Souls 3', 'PC', 2500.0),
@@ -33,9 +32,9 @@ def init_db():
             ('God of War: Ragnarok', 'PS5', 4999.0), 
             ('Hogwarts Legacy', 'PC', 3499.0)
         ]
-        cursor.executemany('INSERT INTO games (title, platform, price) VALUES (?, ?, ?)', games_data)
-    conn.commit()
-    conn.close()
+        cur.executemany('INSERT INTO games (title, platform, price) VALUES (?, ?, ?)', games_data)
+    db.commit()
+    db.close()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -43,11 +42,11 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        conn = sqlite3.connect('games.db')
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
-        user = cursor.fetchone()
-        conn.close()
+        db = sqlite3.connect('games.db')
+        cur = db.cursor()
+        cur.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
+        user = cur.fetchone()
+        db.close()
         if user:
             session['logged_in'] = True
             return redirect(url_for('index'))
@@ -63,8 +62,8 @@ def logout():
 @app.route('/', methods=['GET', 'POST'])
 def index():
     error = None
-    conn = sqlite3.connect('games.db')
-    cursor = conn.cursor()
+    db = sqlite3.connect('games.db')
+    cur = db.cursor()
     if request.method == 'POST' and session.get('logged_in'):
         title = request.form['title']
         platform = request.form['platform']
@@ -77,25 +76,25 @@ def index():
                 if price <= 0:
                     error = "Цена должна быть больше нуля!"
                 else:
-                    cursor.execute('INSERT INTO games (title, platform, price) VALUES (?, ?, ?)', (title, platform, price))
-                    conn.commit()
+                    cur.execute('INSERT INTO games (title, platform, price) VALUES (?, ?, ?)', (title, platform, price))
+                    db.commit()
                     return redirect(url_for('index'))
             except ValueError:
                 error = "Цена должна быть числом!"
     
-    cursor.execute('SELECT * FROM games')
-    games = cursor.fetchall()
-    conn.close()
+    cur.execute('SELECT * FROM games')
+    games = cur.fetchall()
+    db.close()
     return render_template('index.html', games=games, error=error, logged_in=session.get('logged_in'))
 
 @app.route('/delete/<int:id>')
 def delete(id):
     if session.get('logged_in'):
-        conn = sqlite3.connect('games.db')
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM games WHERE id = ?', (id,))
-        conn.commit()
-        conn.close()
+        db = sqlite3.connect('games.db')
+        cur = db.cursor()
+        cur.execute('DELETE FROM games WHERE id = ?', (id,))
+        db.commit()
+        db.close()
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
